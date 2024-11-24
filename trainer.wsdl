@@ -1,0 +1,60 @@
+<definitions xmlns="http://schemas.xmlsoap.org/wsdl/"
+             xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
+             xmlns:tns="http://example.org/trainer"
+             xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+             targetNamespace="http://example.org/trainer"
+             name="TrainerService">
+  <types>
+    <xsd:schema targetNamespace="http://example.org/trainer">
+      <xsd:element name="GetTrainerRequest">
+        <xsd:complexType>
+          <xsd:sequence>
+            <xsd:element name="id" type="xsd:int"/>
+          </xsd:sequence>
+        </xsd:complexType>
+      </xsd:element>
+      <xsd:element name="GetTrainerResponse">
+        <xsd:complexType>
+          <xsd:sequence>
+            <xsd:element name="id" type="xsd:int"/>
+            <xsd:element name="name" type="xsd:string"/>
+            <xsd:element name="pokemons" type="xsd:string" maxOccurs="unbounded"/>
+          </xsd:sequence>
+        </xsd:complexType>
+      </xsd:element>
+    </xsd:schema>
+  </types>
+
+  <message name="GetTrainerRequest">
+    <part name="parameters" element="tns:GetTrainerRequest"/>
+  </message>
+  <message name="GetTrainerResponse">
+    <part name="parameters" element="tns:GetTrainerResponse"/>
+  </message>
+
+  <portType name="TrainerPortType">
+    <operation name="GetTrainer">
+      <input message="tns:GetTrainerRequest"/>
+      <output message="tns:GetTrainerResponse"/>
+    </operation>
+  </portType>
+
+  <binding name="TrainerBinding" type="tns:TrainerPortType">
+    <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+    <operation name="GetTrainer">
+      <soap:operation soapAction="GetTrainer"/>
+      <input>
+        <soap:body use="literal"/>
+      </input>
+      <output>
+        <soap:body use="literal"/>
+      </output>
+    </operation>
+  </binding>
+
+  <service name="TrainerService">
+    <port name="TrainerPort" binding="tns:TrainerBinding">
+      <soap:address location="http://localhost:5000/soap"/>
+    </port>
+  </service>
+</definitions>
