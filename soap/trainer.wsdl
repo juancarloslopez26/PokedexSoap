@@ -4,8 +4,11 @@
              xmlns:xsd="http://www.w3.org/2001/XMLSchema"
              targetNamespace="http://example.org/trainer"
              name="TrainerService">
+
+  <!-- Tipos para el servicio SOAP -->
   <types>
     <xsd:schema targetNamespace="http://example.org/trainer">
+      <!-- Solicitud y respuesta para el método GetTrainer -->
       <xsd:element name="GetTrainerRequest">
         <xsd:complexType>
           <xsd:sequence>
@@ -18,13 +21,32 @@
           <xsd:sequence>
             <xsd:element name="id" type="xsd:int"/>
             <xsd:element name="name" type="xsd:string"/>
-            <xsd:element name="pokemons" type="xsd:string" maxOccurs="unbounded"/>
+            <xsd:element name="pokemonId" type="xsd:string"/>
+          </xsd:sequence>
+        </xsd:complexType>
+      </xsd:element>
+      
+      <!-- Elementos para el método PostTrainer -->
+      <xsd:element name="PostTrainerRequest">
+        <xsd:complexType>
+          <xsd:sequence>
+            <xsd:element name="name" type="xsd:string"/>
+            <xsd:element name="age" type="xsd:int"/>
+            <xsd:element name="pokemonId" type="xsd:string" minOccurs="0"/>
+          </xsd:sequence>
+        </xsd:complexType>
+      </xsd:element>
+      <xsd:element name="PostTrainerResponse">
+        <xsd:complexType>
+          <xsd:sequence>
+            <xsd:element name="message" type="xsd:string"/>
           </xsd:sequence>
         </xsd:complexType>
       </xsd:element>
     </xsd:schema>
   </types>
 
+  <!-- Mensajes para las operaciones -->
   <message name="GetTrainerRequest">
     <part name="parameters" element="tns:GetTrainerRequest"/>
   </message>
@@ -32,10 +54,22 @@
     <part name="parameters" element="tns:GetTrainerResponse"/>
   </message>
 
+  <message name="PostTrainerRequest">
+    <part name="parameters" element="tns:PostTrainerRequest"/>
+  </message>
+  <message name="PostTrainerResponse">
+    <part name="parameters" element="tns:PostTrainerResponse"/>
+  </message>
+
+  <!-- Puertos y operaciones -->
   <portType name="TrainerPortType">
     <operation name="GetTrainer">
       <input message="tns:GetTrainerRequest"/>
       <output message="tns:GetTrainerResponse"/>
+    </operation>
+    <operation name="PostTrainer">
+      <input message="tns:PostTrainerRequest"/>
+      <output message="tns:PostTrainerResponse"/>
     </operation>
   </portType>
 
@@ -43,6 +77,15 @@
     <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
     <operation name="GetTrainer">
       <soap:operation soapAction="GetTrainer"/>
+      <input>
+        <soap:body use="literal"/>
+      </input>
+      <output>
+        <soap:body use="literal"/>
+      </output>
+    </operation>
+    <operation name="PostTrainer">
+      <soap:operation soapAction="PostTrainer"/>
       <input>
         <soap:body use="literal"/>
       </input>
