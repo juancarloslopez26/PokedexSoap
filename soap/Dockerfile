@@ -4,10 +4,11 @@ FROM python:3.10-slim
 RUN apt-get update && apt-get install -y libxml2-dev libxslt-dev gcc
 
 # Instalar dependencias de Python
-RUN pip install flask spyne lxml
+RUN pip install flask spyne lxml mysql-connector-python
 
 # Copiar los archivos
 COPY soap_api.py /app/soap_api.py
+COPY database.py /app/database.py
 
 WORKDIR /app
 

@@ -1,68 +1,31 @@
-import sqlite3
 from flask import Flask, request, Response
-from spyne import Application, rpc, ServiceBase, Integer, Unicode, Iterable, Array
+from spyne import Application, rpc, ServiceBase, Integer, Unicode, Iterable
 from spyne.protocol.soap import Soap11
 from spyne.server.wsgi import WsgiApplication
+from database import fetch_trainer_by_id, insert_trainer
 
 # Inicializar Flask
 app = Flask(__name__)
 
-# Conectar a la base de datos
-DB_PATH = "trainers.db"
-
-def init_db():
-    """Inicializa la base de datos si no existe."""
-    with sqlite3.connect(DB_PATH) as conn:
-        cursor = conn.cursor()
-        cursor.execute("""
-        CREATE TABLE IF NOT EXISTS trainers (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT NOT NULL
-        )
-        """)
-        cursor.execute("""
-        CREATE TABLE IF NOT EXISTS pokemons (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            trainer_id INTEGER NOT NULL,
-            name TEXT NOT NULL,
-            FOREIGN KEY (trainer_id) REFERENCES trainers (id)
-        )
-        """)
-
-# Inicializar la base de datos
-init_db()
-
+# Definir el servicio SOAP
 class TrainerService(ServiceBase):
     @rpc(Integer, _returns=Iterable(Unicode))
     def GetTrainer(ctx, id):
-        """Devuelve la información de un entrenador dado su ID."""
-        with sqlite3.connect(DB_PATH) as conn:
-            cursor = conn.cursor()
-            cursor.execute("SELECT name FROM trainers WHERE id = ?", (id,))
-            trainer = cursor.fetchone()
-            if trainer:
-                yield f"ID: {id}"
-                yield f"Name: {trainer[0]}"
-                cursor.execute("SELECT name FROM pokemons WHERE trainer_id = ?", (id,))
-                pokemons = cursor.fetchall()
-                for pokemon in pokemons:
-                    yield f"Pokemon: {pokemon[0]}"
-            else:
-                yield "Trainer not found"
+        """Devuelve la información de un entrenador dado su ID desde la base de datos."""
+        trainer = fetch_trainer_by_id(id)
+        if trainer:
+            yield f"ID: {trainer['id']}"
+            yield f"Name: {trainer['nombre']}"
+            yield f"Age: {trainer['edad']}"
+            yield f"Pokemon ID: {trainer['pokemonId'] or 'None'}"
+        else:
+            yield "Trainer not found"
 
-    @rpc(Unicode, Array(Unicode), _returns=Unicode)
-    def PostTrainer(ctx, name, pokemons):
-        """Añade un nuevo entrenador al sistema."""
-        with sqlite3.connect(DB_PATH) as conn:
-            cursor = conn.cursor()
-            # Insertar el entrenador
-            cursor.execute("INSERT INTO trainers (name) VALUES (?)", (name,))
-            trainer_id = cursor.lastrowid
-            # Insertar los Pokémon
-            for pokemon in pokemons:
-                cursor.execute("INSERT INTO pokemons (trainer_id, name) VALUES (?, ?)", (trainer_id, pokemon))
-            conn.commit()
-            return f"Trainer '{name}' with ID {trainer_id} added successfully."
+    @rpc(Unicode, Integer, Unicode, _returns=Unicode)
+    def PostTrainer(ctx, name, age, pokemon_id=None):
+        """Añade un nuevo entrenador al sistema y lo guarda en la base de datos."""
+        new_id = insert_trainer(name, age, pokemon_id)
+        return f"Trainer '{name}' with ID {new_id} added successfully."
 
 # Configurar Spyne
 soap_app = Application(
