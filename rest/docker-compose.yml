@@ -1,0 +1,40 @@
+version: '3.8'
+services:
+  db:
+    image: mongo:latest
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: example
+    ports:
+      - 27017:27017  
+    volumes:
+      - mongo-data-pokedex:/data/db
+      - ./init-mongo.js:/docker-entrypoint-initdb.d/init-mongo.js 
+
+  redis:
+    image: redis:latest
+    restart: always
+    ports:
+      - 6379:6379
+  
+  app:
+    build: .
+    restart: always
+    ports:
+      - '3000:3000'
+    depends_on:
+      - db
+      - redis
+
+  mongo-seed:
+    image: mongo:latest
+    depends_on:
+      - db
+    volumes:
+      - ./pokemons.json:/pokemons.json
+    entrypoint: >
+      bash -c "mongoimport --host db --db test --collection Pokedex --authenticationDatabase admin --username root --password example --file /pokemons.json --jsonArray"
+
+volumes:
+  mongo-data-pokedex:

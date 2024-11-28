@@ -1,0 +1,21 @@
+{
+    "name": "pokedex",
+    "version": "1.0.0",
+    "description": "API RESTful utilizando MongoDB y contenedores de Docker",
+    "main": "index.js",
+    "scripts": {
+      "start": "node app.js"
+    },
+    "author": "Osvaldo Dominguez Moreno",
+    "license": "ISC",
+    "dependencies": {
+      "body-parser": "^1.20.3",
+      "express": "^4.21.1",
+      "mongodb": "^6.9.0",
+      "mongoose": "^8.7.1",
+      "redis": "^4.7.0",
+      "swagger-jsdoc": "^6.2.8",
+      "swagger-ui-express": "^5.0.1"
+    }
+  }
+  
