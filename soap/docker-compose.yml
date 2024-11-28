@@ -5,7 +5,7 @@ services:
     build:
       context: .
     ports:
-      - "5000:5000" # Puerto de la API
+      - "4000:4000" # Puerto de la API
     restart: always
     environment:
       FLASK_ENV: development # Modo desarrollo (opcional)

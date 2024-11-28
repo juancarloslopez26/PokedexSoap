@@ -13,7 +13,7 @@ COPY database.py /app/database.py
 WORKDIR /app
 
 # Exponer el puerto de la API
-EXPOSE 5000
+EXPOSE 4000
 
 # Comando para ejecutar la API
 CMD ["python", "soap_api.py"]
