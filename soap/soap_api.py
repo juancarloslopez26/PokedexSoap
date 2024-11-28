@@ -1,7 +1,7 @@
-from flask import Flask, request, Response
-from spyne import Application, rpc, ServiceBase, Integer, Unicode, Iterable
-from spyne.protocol.soap import Soap11
-from spyne.server.wsgi import WsgiApplication
+from flask import Flask, request, Response # type: ignore
+from spyne import Application, rpc, ServiceBase, Integer, Unicode, Iterable # type: ignore
+from spyne.protocol.soap import Soap11 # type: ignore
+from spyne.server.wsgi import WsgiApplication # type: ignore
 from database import fetch_trainer_by_id, insert_trainer
 
 # Inicializar Flask

@@ -1,4 +1,4 @@
-import mysql.connector
+import mysql.connector # type: ignore
 
 # Configuración de la conexión a la base de datos
 DB_CONFIG = {
