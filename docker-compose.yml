@@ -1,0 +1,84 @@
+version: '3.8'
+
+services:
+  # Servicio de la base de datos Mongo para la API REST
+  db:
+    image: mongo:latest
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: example
+    ports:
+      - 27017:27017
+    volumes:
+      - mongo-data-pokedex:/data/db
+      - ./rest/init-mongo.js:/docker-entrypoint-initdb.d/init-mongo.js 
+
+  # Servicio de Redis para la API REST
+  redis:
+    image: redis:latest
+    restart: always
+    ports:
+      - 6379:6379
+
+  # Servicio de la API REST (Pokedex)
+  rest-api:
+    build:
+      context: ./rest
+    ports:
+      - "3000:3000"
+    depends_on:
+      - db
+      - redis
+
+  # Servicio de la API SOAP (Entrenadores)
+  soap-api:
+    build:
+      context: ./soap
+    ports:
+      - "4000:4000" # Puerto de la API SOAP
+    restart: always
+    environment:
+      FLASK_ENV: development
+      MYSQL_HOST: mysqldb
+      MYSQL_PORT: 3306
+      MYSQL_USER: root
+      MYSQL_PASSWORD: admin
+      MYSQL_DATABASE: trainers
+    depends_on:
+      - mysqldb
+    networks:
+      - soap-network
+
+  # Servicio de MySQL para la API SOAP
+  mysqldb:
+    image: mysql:latest
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: admin
+      MYSQL_DATABASE: trainers
+    ports:
+      - "3308:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+      - ./soap/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - soap-network
+
+  # Servicio para inyectar los datos de los Pokémon a MongoDB
+  mongo-seed:
+    image: mongo:latest
+    depends_on:
+      - db
+    volumes:
+      - ./rest/pokemons.json:/pokemons.json
+    entrypoint: >
+      bash -c "mongoimport --host db --db test --collection Pokedex --authenticationDatabase admin --username root --password example --file /pokemons.json --jsonArray"
+
+volumes:
+  mongo-data-pokedex:
+  mysql-data:
+
+networks:
+  soap-network:
+    driver: bridge
