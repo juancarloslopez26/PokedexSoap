@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rest-api
+  namespace: jclo-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: rest-api
+  template:
+    metadata:
+      labels:
+        app: rest-api
+    spec:
+      containers:
+        - name: rest-api
+          image: pokedex-api:2
+          ports:
+            - containerPort: 3000
+          env:
+            - name: MONGO_HOST
+              value: mongo-service.hga-database.svc.cluster.local
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: rest-api-service
+  namespace: jclo-api
+spec:
+  type: LoadBalancer
+  ports:
+    - port: 3000
+      targetPort: 3000
+  selector:
+    app: rest-api

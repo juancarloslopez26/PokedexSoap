@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: soap-api
+  namespace: jclo-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: soap-api
+  template:
+    metadata:
+      labels:
+        app: soap-api
+    spec:
+      containers:
+        - name: soap-api
+          image: trainers-api:1
+          ports:
+            - containerPort: 4000
+          env:
+            - name: MYSQL_HOST
+              value: mysql-service.hga-database.svc.cluster.local
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: soap-api-service
+  namespace: jclo-api
+spec:
+  type: ClusterIP
+  ports:
+    - port: 4000
+      targetPort: 4000
+  selector:
+    app: soap-api
