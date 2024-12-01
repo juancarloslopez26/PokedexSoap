@@ -1,6 +1,6 @@
 const fs = require('fs');
 const MongoClient = require('mongodb').MongoClient;
-const url = 'mongodb://root:example@db:27017/';
+const url = 'db://root:example@db:27017/';
 const dbName = 'test'; 
 const collectionName = 'Pokedex';
 

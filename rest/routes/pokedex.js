@@ -1,5 +1,6 @@
 const express = require('express')
 const axios = require('axios');
+const { parseStringPromise } = require('xml2js'); 
 const pokedex = express.Router()
 const Pokemon = require('../schema/pokemon')
 
@@ -253,34 +254,61 @@ pokedex.get('/name/:name', async (req, res) => {
 
 pokedex.get('/:id', async (req, res) => {
     try {
-        // Buscar el Pokémon por su ID en MongoDB
-        const pokemon = await Pokemon.findOne({ id: req.params.id });
-
+        // Paso 1: Buscar el Pokémon en la base de datos
+        const pokemon = await Pokemon.findById(req.params.id);
         if (!pokemon) {
             return res.status(404).json({ error: 'Pokemon not found' });
         }
 
-        // Si el Pokémon tiene un trainer_id, hacemos la solicitud a la API SOAP
-        if (pokemon.trainer_id) {
-            try {
-                // Realizar una solicitud HTTP a la API SOAP para obtener el entrenador
-                const response = await axios.get(`http://soap-api:4000/trainers/${pokemon.trainer_id}`);
-                
-                // Añadir los datos del entrenador al Pokémon
-                pokemon.trainer = response.data; 
-            } catch (error) {
-                console.error('Error al obtener el entrenador:', error.message);
-                pokemon.trainer = null; // Si ocurre un error, asignamos null al atributo trainer
-            }
-        }
+        // Paso 2: Construir la solicitud SOAP
+        const soapRequest = `
+            <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:tns="trainer.soap.api">
+                <soapenv:Header/>
+                <soapenv:Body>
+                    <tns:GetTrainer>
+                        <tns:id>1</tns:id> <!-- Cambia este ID si necesitas usar otro -->
+                    </tns:GetTrainer>
+                </soapenv:Body>
+            </soapenv:Envelope>
+        `;
 
-        // Devolver la información del Pokémon junto con el entrenador
-        res.json(pokemon);
+        // Paso 3: Llamar a la API SOAP
+        const response = await axios.post(
+            'http://soap-api:4000/soap', // URL de tu API SOAP
+            soapRequest,
+            {
+                headers: {
+                    'Content-Type': 'text/xml; charset=utf-8',
+                },
+            }
+        );
+
+        // Parsear la respuesta SOAP
+        const xmlResponse = response.data;
+        console.log('Respuesta XML:', xmlResponse);
+
+        const parsedData = await parseStringPromise(xmlResponse, {
+            explicitArray: false, // Simplifica el acceso eliminando arrays innecesarios
+            tagNameProcessors: [(name) => name.replace(/.*:/, '')], // Remueve los prefijos de las etiquetas
+        });
+
+        const trainerData = parsedData.Envelope.Body.GetTrainerResponse.GetTrainerResult;
+
+        // Paso 4: Combinar ambas respuestas
+        const combinedResult = {
+            pokemon,
+            trainer: trainerData,
+        };
+
+        // Devolver la respuesta combinada
+        res.json(combinedResult);
     } catch (error) {
-        console.error('Error al obtener el Pokémon:', error.message);
+        console.error('Error al interactuar con la API:', error.message);
         res.status(500).json({ error: 'Server error' });
     }
 });
+
+
 
 
 /**

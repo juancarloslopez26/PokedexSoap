@@ -13,6 +13,8 @@ services:
     volumes:
       - mongo-data-pokedex:/data/db
       - ./rest/init-mongo.js:/docker-entrypoint-initdb.d/init-mongo.js 
+    networks:
+      - soap-network
 
   # Servicio de Redis para la API REST
   redis:
@@ -20,6 +22,8 @@ services:
     restart: always
     ports:
       - 6379:6379
+    networks:
+      - soap-network
 
   # Servicio de la API REST (Pokedex)
   rest-api:
@@ -30,6 +34,8 @@ services:
     depends_on:
       - db
       - redis
+    networks:
+      - soap-network
 
   # Servicio de la API SOAP (Entrenadores)
   soap-api:
@@ -74,6 +80,8 @@ services:
       - ./rest/pokemons.json:/pokemons.json
     entrypoint: >
       bash -c "mongoimport --host db --db test --collection Pokedex --authenticationDatabase admin --username root --password example --file /pokemons.json --jsonArray"
+    networks:
+      - soap-network
 
 volumes:
   mongo-data-pokedex:
