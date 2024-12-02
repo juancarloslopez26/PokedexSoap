@@ -6,7 +6,8 @@
 Asegúrate de tener instalados los siguientes programas en tu sistema antes de comenzar:
 - **Git**: Para clonar el repositorio.
 - **Node.js y npm**: Para instalar dependencias y ejecutar el backend.
-- **Docker y Docker Compose**: Para orquestar los contenedores del proyecto.
+- **Docker y Docker Compose**: Para orquestar los contenedores del proyecto desde docker.
+- **Minikube y kubectl**: Para orquestar los contenedores del proyecto desde kubernetes.
 
 ---
 
