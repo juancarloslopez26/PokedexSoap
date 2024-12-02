@@ -1,5 +1,12 @@
 # PokedexApi
+---
 
+## Propósito de las APIS
+La api REST está programada con node.js y simula una pokedex con multiples atributos para cada pokemon. Se incluye un atributo trainer_id que será asociado a la api SOAP 
+
+La api SOAP está programada en python y simula un registro de entrenadores con solo 4 campos: id, nombre, edad y pokemonId, que es el atributo a linkear con la api REST
+
+La api REST incluye comunicación hacia la api SOAP en dos endpoints: GetByID y PostTrainer
 ---
 
 ## Requisitos Previos
