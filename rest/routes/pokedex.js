@@ -300,6 +300,106 @@ pokedex.get('/:id', async (req, res) => {
 
 /**
  * @swagger
+ * /pokedex/trainer:
+ *   post:
+ *     summary: Crear un nuevo entrenador
+ *     description: Envía una solicitud SOAP para crear un entrenador en la API SOAP.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 description: El nombre del entrenador.
+ *                 example: Osvaldo
+ *               age:
+ *                 type: integer
+ *                 description: La edad del entrenador.
+ *                 example: 20
+ *               pokemon_id:
+ *                 type: string
+ *                 description: ID del Pokémon asociado (opcional).
+ *                 example: 200
+ *     responses:
+ *       201:
+ *         description: Entrenador creado exitosamente.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Trainer created successfully.
+ *                 trainer:
+ *                   type: object
+ *                   description: Información del entrenador creado.
+ *       400:
+ *         description: Solicitud inválida (falta el nombre o la edad).
+ *       500:
+ *         description: Error interno del servidor.
+ */
+
+
+pokedex.post('/trainer', async (req, res) => {
+    const { name, age, pokemon_id } = req.body;
+
+    // Validación de entrada
+    if (!name || !age) {
+        return res.status(400).json({ error: 'Name and age are required.' });
+    }
+
+    try {
+        // Construir la solicitud SOAP para crear un entrenador
+        const soapRequest = `
+            <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:tns="trainer.soap.api">
+                <soapenv:Header/>
+                <soapenv:Body>
+                    <tns:PostTrainer>
+                        <tns:name>${name}</tns:name>
+                        <tns:age>${age}</tns:age>
+                        <tns:pokemon_id>${pokemon_id || ''}</tns:pokemon_id>
+                    </tns:PostTrainer>
+                </soapenv:Body>
+            </soapenv:Envelope>
+        `;
+
+        // Hacer la solicitud a la API SOAP
+        const response = await axios.post(
+            'http://soap-api:4000/soap', // URL de tu API SOAP
+            soapRequest,
+            {
+                headers: {
+                    'Content-Type': 'text/xml; charset=utf-8',
+                },
+            }
+        );
+
+        // Parsear la respuesta SOAP
+        const xmlResponse = response.data;
+        console.log('Respuesta XML:', xmlResponse);
+
+        const parsedData = await parseStringPromise(xmlResponse, {
+            explicitArray: false, // Simplifica el acceso eliminando arrays innecesarios
+            tagNameProcessors: [(name) => name.replace(/.*:/, '')], // Remueve los prefijos de las etiquetas
+        });
+
+        const trainerResult = parsedData.Envelope.Body.PostTrainerResponse.PostTrainerResult;
+
+        // Devolver la respuesta procesada al cliente
+        res.status(201).json({ message: 'Trainer created successfully.', trainer: trainerResult });
+    } catch (error) {
+        console.error('Error al interactuar con la API SOAP:', error.message);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+
+/**
+ * @swagger
  * /pokedex/type/{type}:
  *   get:
  *     summary: Buscar Pokémon por tipo
