@@ -4,11 +4,6 @@ const { parseStringPromise } = require('xml2js');
 const pokedex = express.Router()
 const Pokemon = require('../schema/pokemon')
 
-const redisClient = require('redis').createClient({
-    url: 'redis://redis:6379'
-})
-redisClient.connect()
-
 /**
  * @swagger
  * components:
@@ -158,38 +153,30 @@ redisClient.connect()
 
 pokedex.get('/', async (req, res) => {
     const { page = 1, limit = 4 } = req.query;
-    const cacheKey = `pokemons:page:${page}:limit:${limit}`
 
     try {
-        const cachedPokemons = await redisClient.get(cacheKey); 
-
-        if (cachedPokemons) {
-            return res.json(JSON.parse(cachedPokemons)); 
-        }
-
+        // Realiza la consulta a la base de datos para obtener los pokémons paginados
         const pokemons = await Pokemon.find()
-            .skip((page - 1) * limit)
-            .limit(parseInt(limit));
+            .skip((page - 1) * limit) // Salta los primeros "page-1" registros
+            .limit(parseInt(limit));  // Limita la cantidad de resultados según "limit"
 
-        const total = await Pokemon.countDocuments();
+        const total = await Pokemon.countDocuments(); // Cuenta el total de documentos disponibles
 
+        // Estructura el resultado con la paginación
         const result = {
             totalPokemons: total,
-            totalPages: Math.ceil(total / limit),
-            currentPage: parseInt(page),
+            totalPages: Math.ceil(total / limit),  // Calcula el número total de páginas
+            currentPage: parseInt(page),  // Página actual
             pokemons
         };
 
-        await redisClient.set(cacheKey, JSON.stringify(result), {
-            EX: 3600 
-        });
-
-        res.json(result);
+        res.json(result); // Envía la respuesta con la lista de pokémons paginados
 
     } catch (error) {
-        res.status(500).send(error.message);
+        res.status(500).send(error.message); // Manejo de errores si ocurre algo
     }
 });
+
 
 /**
  * @swagger
@@ -260,19 +247,22 @@ pokedex.get('/:id', async (req, res) => {
             return res.status(404).json({ error: 'Pokemon not found' });
         }
 
-        // Paso 2: Construir la solicitud SOAP
+        // Paso 2: Obtener el trainer_id desde el Pokémon
+        const trainerId = pokemon.trainer_id;
+
+        // Paso 3: Construir la solicitud SOAP con el trainer_id dinámico
         const soapRequest = `
             <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:tns="trainer.soap.api">
                 <soapenv:Header/>
                 <soapenv:Body>
                     <tns:GetTrainer>
-                        <tns:id>1</tns:id> <!-- Cambia este ID si necesitas usar otro -->
+                        <tns:id>${trainerId}</tns:id> <!-- Usando el trainer_id dinámico -->
                     </tns:GetTrainer>
                 </soapenv:Body>
             </soapenv:Envelope>
         `;
 
-        // Paso 3: Llamar a la API SOAP
+        // Paso 4: Llamar a la API SOAP
         const response = await axios.post(
             'http://soap-api:4000/soap', // URL de tu API SOAP
             soapRequest,
@@ -294,7 +284,7 @@ pokedex.get('/:id', async (req, res) => {
 
         const trainerData = parsedData.Envelope.Body.GetTrainerResponse.GetTrainerResult;
 
-        // Paso 4: Combinar ambas respuestas
+        // Paso 5: Combinar ambas respuestas
         const combinedResult = {
             pokemon,
             trainer: trainerData,
@@ -307,9 +297,6 @@ pokedex.get('/:id', async (req, res) => {
         res.status(500).json({ error: 'Server error' });
     }
 });
-
-
-
 
 /**
  * @swagger
@@ -351,23 +338,26 @@ pokedex.get('/type/:type', async (req, res) => {
     const limit = parseInt(req.query.limit) || 4;
     const skip = (page - 1) * limit;
 
-    const cacheKey = `pokemons:${type}:page:${page}`;
-
     try {
-        const cachedData = await redisClient.get(cacheKey);
-        if (cachedData) {
-            return res.json(JSON.parse(cachedData)); 
-        }
-
+        // Consulta la base de datos por tipo de Pokémon con paginación
         const pokemons = await Pokemon.find({ type })
             .skip(skip)
             .limit(limit);
 
-        await redisClient.setEx(cacheKey, 600, JSON.stringify(pokemons));
+        // Obtiene el total de Pokémon de ese tipo para calcular las páginas
+        const total = await Pokemon.countDocuments({ type });
 
-        res.json(pokemons);
+        // Estructura el resultado con la paginación
+        const result = {
+            totalPokemons: total,
+            totalPages: Math.ceil(total / limit),
+            currentPage: page,
+            pokemons
+        };
+
+        res.json(result); // Devuelve los pokémons filtrados por tipo con la paginación
     } catch (error) {
-        res.status(500).json({ error: 'Server error' });
+        res.status(500).json({ error: 'Server error' }); // Manejo de errores
     }
 });
 

@@ -11,12 +11,6 @@ services:
     volumes:
       - mongo-data-pokedex:/data/db
       - ./init-mongo.js:/docker-entrypoint-initdb.d/init-mongo.js 
-
-  redis:
-    image: redis:latest
-    restart: always
-    ports:
-      - 6379:6379
   
   app:
     build: .
@@ -25,7 +19,6 @@ services:
       - '3000:3000'
     depends_on:
       - db
-      - redis
 
   mongo-seed:
     image: mongo:latest

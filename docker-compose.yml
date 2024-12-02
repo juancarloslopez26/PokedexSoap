@@ -16,15 +16,6 @@ services:
     networks:
       - soap-network
 
-  # Servicio de Redis para la API REST
-  redis:
-    image: redis:latest
-    restart: always
-    ports:
-      - 6379:6379
-    networks:
-      - soap-network
-
   # Servicio de la API REST (Pokedex)
   rest-api:
     build:
@@ -33,7 +24,6 @@ services:
       - "3000:3000"
     depends_on:
       - db
-      - redis
     networks:
       - soap-network
 

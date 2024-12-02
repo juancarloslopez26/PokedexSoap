@@ -21,8 +21,6 @@ spec:
           env:
             - name: MONGO_URI
               value: mongodb://mongo.odm-database.svc.cluster.local:27017
-            - name: REDIS_HOST
-              value: redis.odm-database.svc.cluster.local
             - name: SOAP_API_URL
               value: http://soap-api.jclo-api.svc.cluster.local:4000
 ---
