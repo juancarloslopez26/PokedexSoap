@@ -61,7 +61,7 @@ Asegúrate de tener instalados los siguientes programas en tu sistema antes de c
     ```bash
    minikube tunnel     
 
-10. Deberás ingresar a tu navegador en la ruta <ExternalIP>:3000/swaggerIndex, y desde ahi podrás probar todos los endpoints de la api Rest
+10. Deberás ingresar a tu navegador en la ruta 'ExternalIP':3000/swaggerIndex, y desde ahi podrás probar todos los endpoints de la api Rest
  
 ### Para probar la api rest con docker-compose
 1. Levantar los contenedores
