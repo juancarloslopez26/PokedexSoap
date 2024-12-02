@@ -15,12 +15,18 @@ spec:
     spec:
       containers:
         - name: soap-api
-          image: trainers-api:1
+          image: osvaldo2121/trainers-api:1
           ports:
             - containerPort: 4000
           env:
             - name: MYSQL_HOST
               value: mysql-service.hga-database.svc.cluster.local
+            - name: MYSQL_USER
+              value: root
+            - name: MYSQL_PASSWORD
+              value: admin
+            - name: MYSQL_DATABASE
+              value: trainers
 ---
 apiVersion: v1
 kind: Service

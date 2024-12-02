@@ -8,7 +8,7 @@ spec:
     storage: 1Gi
   accessModes:
     - ReadWriteOnce
-  hostPath: # Configuración del hostPath
+  hostPath: 
     path: /mnt/data/mysql
     type: DirectoryOrCreate
 ---
