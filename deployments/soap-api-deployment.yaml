@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: soap-api
-          image: osvaldo2121/trainers-api:1
+          image: localhost:5000/trainers-api:10
           ports:
             - containerPort: 4000
           env:

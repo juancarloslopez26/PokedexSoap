@@ -15,12 +15,12 @@ spec:
     spec:
       containers:
         - name: rest-api
-          image: osvaldo2121/pokedex-api:2
+          image: localhost:5000/pokedex-api:10
           ports:
             - containerPort: 3000
           env:
             - name: MONGO_URI
-              value: mongodb://mongo.odm-database.svc.cluster.local:27017
+              value: mongodb://mongo-service.odm-database.svc.cluster.local:27017
             - name: SOAP_API_URL
               value: http://soap-api.jclo-api.svc.cluster.local:4000
 ---
